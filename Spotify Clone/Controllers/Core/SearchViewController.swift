@@ -5,6 +5,7 @@
 //  Created by Umang Gadhavana on 31/01/22.
 //
 
+import SafariServices
 import UIKit
 
 class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate {
@@ -95,14 +96,15 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
               !query.trimmingCharacters(in: .whitespaces).isEmpty else {
                   return
               }
+        resultsController.delegate = self
         
         //Perform Search
-        APICaller.shared.search(with: query) { [weak self] result in
+        APICaller.shared.search(with: query) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success(let list):
-//                    resultsController.update(with: list)
-                    print(list)
+                case .success(let results):
+                    resultsController.update(with: results)
+                    print(results)
                 case .failure(let error):
                     print(error.localizedDescription)
                 }
@@ -112,6 +114,32 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
     
     func updateSearchResults(for searchController: UISearchController) {
         print("hello")
+    }
+}
+
+extension SearchViewController: SearchResultsViewControllerDelegate {
+    func didTapResult(_ result: SearchResult) {
+        switch result {
+        case .artist(let model):
+            // Artist Detail
+            guard let url = URL(string: model.external_urls["spotify"] ?? "") else {
+                return
+            }
+            let vc = SFSafariViewController(url: url)
+            present(vc, animated: true)
+            
+        case .album(let model):
+            let vc = AlbumViewController(album: model)
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
+        case .track(let model):
+            // Track Detail
+            break
+        case .playlist(let model):
+            let vc = PlaylistViewController(playlist: model)
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
+        }
     }
 }
 

@@ -262,6 +262,7 @@ final class APICaller {
                         //                        let result = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
                         
                         let result = try JSONDecoder().decode(SearchResultResponse.self, from: data)
+                        print(result)
                         var searchResult: [SearchResult] = []
                         searchResult.append(contentsOf: result.tracks.items.compactMap({ .track(model: $0) }))
                         
